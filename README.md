@@ -2,7 +2,7 @@
 
 **A multi-dataset study of how atmospheric CO₂, global surface temperature, mean sea level, and climate-related disaster frequency move together over time — and what their interplay implies for disaster risk.**
 
-![Python](https://img.shields.io/badge/Python-3.12-blue) ![GeoPandas](https://img.shields.io/badge/GeoPandas-maps-green) ![Type](https://img.shields.io/badge/Type-Multi--dataset%20EDA%20%2B%20Stats-orange)
+![Python](https://img.shields.io/badge/Python-3.12-blue) ![GeoPandas](https://img.shields.io/badge/GeoPandas-maps-green) ![Type](https://img.shields.io/badge/Type-Multi--dataset%20EDA%20%2B%20Stats-orange) [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
 ---
 
