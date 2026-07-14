@@ -22,3 +22,6 @@ desktop.ini
 *.log
 *.tmp
 reports/cache/
+__pycache__/
+*.pyc
+.pytest_cache/

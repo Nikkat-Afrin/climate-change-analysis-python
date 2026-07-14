@@ -2,7 +2,8 @@
 
 **A multi-dataset study of how atmospheric CO₂, global surface temperature, mean sea level, and climate-related disaster frequency move together over time — and what their interplay implies for disaster risk.**
 
-![Python](https://img.shields.io/badge/Python-3.12-blue) ![GeoPandas](https://img.shields.io/badge/GeoPandas-maps-green) ![Type](https://img.shields.io/badge/Type-Multi--dataset%20EDA%20%2B%20Stats-orange) [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+[![CI](https://github.com/Nikkat-Afrin/climate-change-analysis-python/actions/workflows/ci.yml/badge.svg)](https://github.com/Nikkat-Afrin/climate-change-analysis-python/actions/workflows/ci.yml) ![Python](https://img.shields.io/badge/Python-3.12-blue) ![GeoPandas](https://img.shields.io/badge/GeoPandas-maps-green) ![Type](https://img.shields.io/badge/Type-Multi--dataset%20EDA%20%2B%20Stats-orange)
+ [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
 ---
 
@@ -54,3 +55,20 @@ jupyter lab notebooks/climate_co2_temp_sealevel.ipynb
 
 ---
 *Academic team project (DAV 5400 Final). Data © IMF Climate Change Indicators / NOAA. Original analysis cleaned, re-sourced, and made self-contained.*
+
+
+## 🏗️ ETL pipeline (`src/climate_etl.py`)
+
+The three IMF Climate-Data-Portal exports each arrive in a different layout (monthly rows, per-sea satellite passes, and a wide one-column-per-year table). The ETL module turns them into one analysis-ready annual table with explicit data-quality gates:
+
+```bash
+python src/climate_etl.py            # -> data/processed/climate_annual.csv (year, co2_ppm, temp_anomaly_c, sea_level_mm)
+python src/climate_etl.py --strict   # fail (exit non-zero) on any data-quality warning
+pytest tests/                        # 10 ETL tests, run in CI on every push
+```
+
+Data-quality behaviors worth noting:
+- **Indicator disambiguation** — the CO₂ export interleaves ppm concentrations with year-on-year % change rows; only `Parts Per Million` rows are aggregated.
+- **Quarantine** — physically implausible raw readings are dropped and logged before aggregation (the 2023 export ends with a corrupt `2024M01,0.68` row, which the pipeline catches).
+- **Fair sea-level averaging** — satellite passes are averaged per sea per year *before* the global mean, so heavily-sampled seas don't dominate.
+- **Continuity + range checks** — missing years and out-of-range values are reported in a JSON DQ report; `--strict` turns warnings into failures for use in scheduled jobs.
