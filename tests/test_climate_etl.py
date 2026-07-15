@@ -101,4 +101,4 @@ def test_dashboard_builds(tmp_path, monkeypatch):
     monkeypatch.setattr(build_dashboard, "OUT", tmp_path / "index.html")
     build_dashboard.main()
     html = (tmp_path / "index.html").read_text(encoding="utf-8")
-    assert html.count('class="card') == 4 and "cdn.plot.ly" in html
+    assert html.count('class="card') == 6 and "cdn.plot.ly" in html

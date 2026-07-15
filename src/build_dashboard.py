@@ -17,12 +17,17 @@ from __future__ import annotations
 
 from pathlib import Path
 
+import json
+import re
+
 import numpy as np
 import pandas as pd
 import plotly.graph_objects as go
 
 ROOT = Path(__file__).resolve().parents[1]
 DATA = ROOT / "data" / "processed" / "climate_annual.csv"
+TEMP_RAW = ROOT / "data" / "surface_temperature.csv"
+DISASTER_RAW = ROOT / "data" / "disaster_frequency.geojson"
 OUT = ROOT / "docs" / "index.html"
 
 CSS = """
@@ -49,6 +54,69 @@ CSS = """
 def load() -> pd.DataFrame:
     df = pd.read_csv(DATA)
     return df.sort_values("year").reset_index(drop=True)
+
+
+def load_country_temperature(period: tuple[int, int] = (2013, 2023)) -> pd.DataFrame:
+    """Per-country mean temperature anomaly over the last decade (ISO3 keyed)."""
+    df = pd.read_csv(TEMP_RAW, encoding="utf-8-sig")
+    year_cols = [c for c in df.columns
+                 if re.fullmatch(r"(19|20)\d{2}", str(c))
+                 and period[0] <= int(c) <= period[1]]
+    out = df[["Country", "ISO3"]].copy()
+    out["temp_recent"] = df[year_cols].apply(pd.to_numeric, errors="coerce").mean(axis=1)
+    out = out.dropna(subset=["temp_recent", "ISO3"])
+    # drop aggregate rows (World, continents) that carry non-standard ISO3 codes
+    out = out[out["ISO3"].str.len() == 3]
+    return out
+
+
+def load_country_disasters(period: tuple[int, int] = (2000, 2022)) -> pd.DataFrame:
+    """Total climate-related disasters per country since 2000 (ISO3 keyed)."""
+    gj = json.loads(DISASTER_RAW.read_text(encoding="utf-8"))
+    rows = []
+    for feat in gj["features"]:
+        prop = feat["properties"]
+        if prop.get("Indicator") != ("Climate related disasters frequency, "
+                                     "Number of Disasters: TOTAL"):
+            continue
+        total = 0.0
+        for k, v in prop.items():
+            m = re.fullmatch(r"F((19|20)\d{2})", str(k))
+            if m and v is not None and period[0] <= int(m.group(1)) <= period[1]:
+                total += float(v)
+        if prop.get("ISO3") and len(prop["ISO3"]) == 3:
+            rows.append({"Country": prop["Country"], "ISO3": prop["ISO3"],
+                         "disasters": total})
+    return pd.DataFrame(rows)
+
+
+def build_map_figures() -> list[go.Figure]:
+    """Two stacked world maps: warming on top, disaster frequency below."""
+    temp = load_country_temperature()
+    dis = load_country_disasters()
+
+    fig_temp = go.Figure(go.Choropleth(
+        locations=temp["ISO3"], z=temp["temp_recent"].round(2),
+        colorscale="OrRd", zmin=0, zmax=2.5,
+        colorbar=dict(title="°C vs<br>1951-80"),
+        text=temp["Country"],
+        hovertemplate="%{text}: +%{z:.2f} °C<extra></extra>"))
+    fig_temp.update_layout(
+        title="Where it is warming: mean temperature anomaly by country, 2013-2023",
+        geo=dict(showframe=False, projection_type="natural earth"),
+        height=520, margin=dict(l=10, r=10, t=55, b=10))
+
+    fig_dis = go.Figure(go.Choropleth(
+        locations=dis["ISO3"], z=dis["disasters"],
+        colorscale="YlOrBr",
+        colorbar=dict(title="Disasters<br>2000-2022"),
+        text=dis["Country"],
+        hovertemplate="%{text}: %{z:.0f} climate-related disasters<extra></extra>"))
+    fig_dis.update_layout(
+        title="Where disasters strike: climate-related disaster count by country, 2000-2022 (EM-DAT)",
+        geo=dict(showframe=False, projection_type="natural earth"),
+        height=520, margin=dict(l=10, r=10, t=55, b=10))
+    return [fig_temp, fig_dis]
 
 
 def build_figures(df: pd.DataFrame) -> list[go.Figure]:
@@ -127,7 +195,7 @@ def render(figs: list[go.Figure], df: pd.DataFrame) -> str:
         for c, v, l in kpis)
     charts = []
     for i, fig in enumerate(figs):
-        cls = "card wide" if i == 0 else "card"
+        cls = "card wide" if i in (0, 1, 2) else "card"
         inner = fig.to_html(full_html=False, include_plotlyjs="cdn" if i == 0 else False,
                             div_id=f"chart-{i}")
         charts.append(f'<div class="{cls}">{inner}</div>')
@@ -150,7 +218,8 @@ Sources: NOAA/Scripps, FAO via IMF Climate Data Portal, NOAA satellite altimetry
 def main() -> None:
     df = load()
     OUT.parent.mkdir(exist_ok=True)
-    OUT.write_text(render(build_figures(df), df), encoding="utf-8")
+    figs = build_map_figures() + build_figures(df)
+    OUT.write_text(render(figs, df), encoding="utf-8")
     print(f"Dashboard -> {OUT} ({OUT.stat().st_size // 1024} KB)")
 
 

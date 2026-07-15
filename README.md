@@ -76,8 +76,8 @@ Data-quality behaviors worth noting:
 
 ## 🌡️ Interactive dashboard
 
-**Live: <https://nikkat-afrin.github.io/climate-change-analysis-python/>** - KPI cards plus four interactive views (CO₂ + temperature dual-axis timeline, satellite-era sea-level trend, decade-average warming, CO₂-temperature coupling), built straight from the ETL pipeline's output. Regenerate with `python src/build_dashboard.py`.
+**Live: <https://nikkat-afrin.github.io/climate-change-analysis-python/>** - KPI cards plus six interactive views: **two stacked world maps showing warming and climate-related disasters side by side** (mean temperature anomaly by country 2013-2023 over EM-DAT disaster counts 2000-2022, so the geographic overlap is immediately visible), the CO₂ + temperature dual-axis timeline, satellite-era sea-level trend, decade-average warming, and CO₂-temperature coupling. Built straight from the ETL pipeline's output; regenerate with `python src/build_dashboard.py`.
 
 ## 📎 Provenance
 
-This repo absorbed the original course repository (`environmental-impact-analysis`, now archived): the project proposal notebook lives at `notebooks/project_proposal.ipynb` and the original course deck at `reports/course_final_presentation.pptx`.
+This repo absorbed the original course repository (`environmental-impact-analysis`, now archived): the project proposal notebook lives at `notebooks/project_proposal.ipynb`.
