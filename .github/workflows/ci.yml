@@ -18,10 +18,13 @@ jobs:
           cache: 'pip'
 
       - name: Install test dependencies
-        run: pip install pandas pytest
+        run: pip install pandas plotly pytest
 
       - name: Run ETL tests
         run: pytest tests/ -v
 
       - name: Run the pipeline end-to-end
         run: python src/climate_etl.py
+
+      - name: Build the dashboard
+        run: python src/build_dashboard.py

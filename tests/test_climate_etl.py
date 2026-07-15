@@ -91,3 +91,14 @@ def test_empty_ppm_rows_raise():
     df = pd.DataFrame({"Date": ["1990M01"], "Value": [1.0], "Unit": ["Percent"]})
     with pytest.raises(DataQualityError, match="Parts Per Million"):
         transform_co2(df)
+
+
+def test_dashboard_builds(tmp_path, monkeypatch):
+    import importlib
+    sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
+    import build_dashboard
+    importlib.reload(build_dashboard)
+    monkeypatch.setattr(build_dashboard, "OUT", tmp_path / "index.html")
+    build_dashboard.main()
+    html = (tmp_path / "index.html").read_text(encoding="utf-8")
+    assert html.count('class="card') == 4 and "cdn.plot.ly" in html

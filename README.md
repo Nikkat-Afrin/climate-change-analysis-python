@@ -74,6 +74,10 @@ Data-quality behaviors worth noting:
 - **Continuity + range checks** - missing years and out-of-range values are reported in a JSON DQ report; `--strict` turns warnings into failures for use in scheduled jobs.
 
 
+## 🌡️ Interactive dashboard
+
+**Live: <https://nikkat-afrin.github.io/climate-change-analysis-python/>** - KPI cards plus four interactive views (CO₂ + temperature dual-axis timeline, satellite-era sea-level trend, decade-average warming, CO₂-temperature coupling), built straight from the ETL pipeline's output. Regenerate with `python src/build_dashboard.py`.
+
 ## 📎 Provenance
 
 This repo absorbed the original course repository (`environmental-impact-analysis`, now archived): the project proposal notebook lives at `notebooks/project_proposal.ipynb` and the original course deck at `reports/course_final_presentation.pptx`.
