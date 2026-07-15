@@ -72,3 +72,8 @@ Data-quality behaviors worth noting:
 - **Quarantine** - physically implausible raw readings are dropped and logged before aggregation (the 2023 export ends with a corrupt `2024M01,0.68` row, which the pipeline catches).
 - **Fair sea-level averaging** - satellite passes are averaged per sea per year *before* the global mean, so heavily-sampled seas don't dominate.
 - **Continuity + range checks** - missing years and out-of-range values are reported in a JSON DQ report; `--strict` turns warnings into failures for use in scheduled jobs.
+
+
+## 📎 Provenance
+
+This repo absorbed the original course repository (`environmental-impact-analysis`, now archived): the project proposal notebook lives at `notebooks/project_proposal.ipynb` and the original course deck at `reports/course_final_presentation.pptx`.
